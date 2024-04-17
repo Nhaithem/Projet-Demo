@@ -36,5 +36,7 @@ public interface UserService {
 
 	void signIn(UserDto userDto) throws Exception;
 
+	UserDetailsService userDetailsService();
+
 	
 }

@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ import java.util.List;
 @Service
 @Slf4j
 @AllArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, UserDetailsService {
 
 
     private UserRepository userRepository;
@@ -58,6 +59,15 @@ public class UserServiceImpl implements UserService {
 
 
     }
+
+    @Override
+    public UserDetailsService userDetailsService() {
+        return new UserDetailsService(){
+            @Override
+            public UserDetails loadUserByUsername(String s) {
+                return userRepository.findUserByEmail(s).orElseThrow(() -> new RuntimeException("User not found"));
+            }
+        };    }
 
     public AuthenticationResponse logIn(AuthenticationRequest request) {
       
@@ -150,6 +160,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll();
     }
 
+    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findUserByEmail(email).orElseThrow(()-> new UsernameNotFoundException(String.format("User email %s not found",email)));
     }
