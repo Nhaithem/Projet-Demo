@@ -1,38 +1,37 @@
 package com.example.demo.service;
 
-import java.util.List;
-
-import jakarta.transaction.Transactional;
-import com.example.demo.mapper.UserMapper;
-import com.example.demo.dto.*;
+import com.example.demo.dto.AuthenticationRequest;
+import com.example.demo.dto.AuthenticationResponse;
+import com.example.demo.dto.ForgotPassword;
+import com.example.demo.dto.ResetPassword;
+import com.example.demo.dto.UserDto;
 import com.example.demo.entity.User;
+import com.example.demo.mapper.UserMapper;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtService;
+import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.webjars.NotFoundException;
+
+import java.util.List;
 
 
 @Service
 @Slf4j
-public class UserServiceImpl implements UserDetailsService {
+@AllArgsConstructor
+public class UserServiceImpl implements UserService {
 
-    @Autowired
+
     private UserRepository userRepository;
-    @Autowired
     private PasswordEncoder passwordEncoder;
-    @Autowired
     private JwtService jwtService;
-    @Autowired
     private AuthenticationManager authenticationManager;
-    @Autowired
     private  EmailService emailService;
 
 
@@ -69,12 +68,11 @@ public class UserServiceImpl implements UserDetailsService {
                         request.getPassword()
                 )
         );
-        log.info("aaaaa");
-        Users user= userRepository.findUserByEmail(request.getEmail())
-                .orElseThrow(()-> new NotFoundException(String.format("User email %s not found",request.getEmail())));
+        User user= userRepository.findUserByEmail(request.getEmail())
+                .orElseThrow(()-> new UsernameNotFoundException(String.format("User email %s not found",request.getEmail())));
 
         AuthenticationResponse res = new AuthenticationResponse();
-        user.getAuthorities().stream().forEach(grantedAuthority -> res.getRoles().add(grantedAuthority.getAuthority().toString()));
+        user.getAuthorities().forEach(grantedAuthority -> res.setRoles(grantedAuthority.getAuthority().toString()));
         String token = jwtService.generateToken(user);
         log.info(token);
         log.info(jwtService.extractId(token));
@@ -90,7 +88,7 @@ public class UserServiceImpl implements UserDetailsService {
             throw new IllegalStateException("token expired");
 
         String username = jwtService.extractUsername(token);
-        Users user= userRepository.findUserByEmail(username).orElseThrow(()-> new IllegalStateException("Token invalid"));
+        User user= userRepository.findUserByEmail(username).orElseThrow(()-> new IllegalStateException("Token invalid"));
 
         if(user.isEnabled())
             throw new IllegalStateException("email already confirmed");
@@ -103,7 +101,7 @@ public class UserServiceImpl implements UserDetailsService {
     public String forgotpassword(ForgotPassword email){
 
         log.info(email.getEmail());
-        Users user= userRepository.findUserByEmail(email.getEmail()).orElseThrow(()-> new NotFoundException(String.format("User email %s not found",email.getEmail())));
+        User user= userRepository.findUserByEmail(email.getEmail()).orElseThrow(()-> new UsernameNotFoundException(String.format("User email %s not found",email.getEmail())));
 
         String token = jwtService.generateToken(user);
 
@@ -119,11 +117,22 @@ public class UserServiceImpl implements UserDetailsService {
         return "email sent";
     }
 
+    @Override
+    public List<User> findAll() {
+        return null;
+    }
+
+    @Override
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(null);
+    }
+
+
     public void resetpassword(ResetPassword password, String token){
         if(jwtService.isTokenExpired(token))
             throw new IllegalStateException("Expired token");
         String email = jwtService.extractUsername(token);
-        Users user= userRepository.findUserByEmail(email).orElseThrow(()-> new IllegalStateException("Token invalid"));
+        User user= userRepository.findUserByEmail(email).orElseThrow(()-> new IllegalStateException("Token invalid"));
         log.info(user.getPassword());
         log.info(password.getPassword());
 
@@ -132,34 +141,33 @@ public class UserServiceImpl implements UserDetailsService {
         userRepository.save(user);
     }
 
-    public Users findUserById(Long id) {
+    public User findUserById(Long id) throws Exception {
         log.info("getting user "+id);
-        return userRepository.findById(id).orElseThrow(()-> new NotFoundException("User not found"));
+        return userRepository.findById(id).orElseThrow(()-> new Exception("User not found"));
     }
 
-    public List<Users> findUsers() {
+    public List<User> findUsers() {
         return userRepository.findAll();
     }
 
-    @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findUserByEmail(email).orElseThrow(()-> new UsernameNotFoundException(String.format("User email %s not found",email)));
     }
 
 
-    public void updateUser(UserDto userDto) {
+    public void updateUser(UserDto userDto) throws Exception {
 
-        userRepository.findUserByEmail(userDto.getEmail()).orElseThrow(()-> new NotFoundException("User not found"));
+        userRepository.findUserByEmail(userDto.getEmail()).orElseThrow(()-> new Exception("User not found"));
 
-        Users user = UserMapper.Instance.userDtoToUser(userDto);
+        User user = UserMapper.Instance.userDtoToUser(userDto);
 
         userRepository.save(user);
     }
 
 
 
-    public void lockUser(String username) {
-        Users u = userRepository.findUserByEmail(username).orElseThrow(()-> new NotFoundException("User not found"));
+    public void lockUser(String username) throws Exception {
+        User u = userRepository.findUserByEmail(username).orElseThrow(()-> new Exception("User not found"));
         u.setLoginAttempts(0);
         u.setIsLocked(true);
         userRepository.save(u);

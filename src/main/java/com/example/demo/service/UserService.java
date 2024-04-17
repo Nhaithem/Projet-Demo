@@ -25,11 +25,6 @@ public interface UserService {
 
     User getUserById(Long id);
 
-    User addUser(User user);
-
-    User updateUser(Long id, User user);
-
-    void deleteUser(Long id);
 
 	void resetpassword(ResetPassword password, String token);
 
@@ -39,7 +34,7 @@ public interface UserService {
 
 	AuthenticationResponse logIn(AuthenticationRequest request);
 
-	void signIn(UserDto userDto);
+	void signIn(UserDto userDto) throws Exception;
 
 	
 }

@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,19 +28,11 @@ public class UserController {
 	    }
 
 	    @PostMapping("/adduser")
-	    public User addUser(@RequestBody User user) {
-	        return userService.addUser(user);
+	    public void addUser(@RequestBody UserDto user) throws Exception {
+	        userService.signIn(user);
 	    }
 
-	    @PutMapping("/{id}")
-	    public User updateUser(@PathVariable Long id, @RequestBody User user) {
-	        return userService.updateUser(id, user);
-	    }
 
-	    @DeleteMapping("/{id}")
-	    public void deleteUser(@PathVariable Long id) {
-	    	userService.deleteUser(id);
-	    }
 	    
 	   
 	}

@@ -39,10 +39,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String email;
 
         if(request.getServletPath().contains("/auth")){
+            log.info("AAAAAAAAAAAAAAAAAAAAAAAAA");
             filterChain.doFilter(request,response);
             return;
         }
         if(authHeader!=null && authHeader.startsWith("Bearer ")){
+            log.info(" auth header : " + authHeader);
             log.error(" auth header : " + authHeader);
             jwt = authHeader.substring(7);
             email = jwtService.extractUsername(jwt);
