@@ -23,17 +23,9 @@ public class UserController {
 	    }
 
 	    @GetMapping("/{id}")
-	    public User getUserById(@PathVariable Long id) {
+	    public User getUserById(@PathVariable Long id) throws Exception {
 	        return userService.getUserById(id);
 	    }
 
-	    @PostMapping("/adduser")
-	    public void addUser(@RequestBody UserDto user) throws Exception {
-	        userService.signIn(user);
-	    }
-
-
-	    
-	   
 	}
 

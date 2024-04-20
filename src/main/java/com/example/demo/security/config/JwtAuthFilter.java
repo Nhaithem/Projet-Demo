@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,13 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 
 
 @Component
+@AllArgsConstructor
 @Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    @Autowired
+
     private  JwtService jwtService;
-    @Autowired
+
     private  UserDetailsService userDetailsService;
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -39,12 +42,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String email;
 
         if(request.getServletPath().contains("/auth")){
-            log.info("AAAAAAAAAAAAAAAAAAAAAAAAA");
             filterChain.doFilter(request,response);
             return;
         }
         if(authHeader!=null && authHeader.startsWith("Bearer ")){
-            log.info(" auth header : " + authHeader);
             log.error(" auth header : " + authHeader);
             jwt = authHeader.substring(7);
             email = jwtService.extractUsername(jwt);

@@ -21,7 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private PasswordEncoder passwordEncoder;
     private JwtService jwtService;
     private AuthenticationManager authenticationManager;
-    private  EmailService emailService;
+    private EmailService emailService;
 
 
     @Transactional
@@ -42,7 +42,15 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if(userRepository.findUserByEmail(userDto.getEmail()).isPresent())
             throw new Exception("User exists !");
 
-        User user = UserMapper.Instance.userDtoToUser(userDto);
+        User user = User.builder()
+                .fullName(userDto.getFullName())
+                .email(userDto.getEmail())
+                .password(userDto.getPassword())
+                .role(userDto.getRole())
+                .isEnabled(false)
+                .isLocked(false)
+                .build();
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
 
@@ -60,17 +68,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     }
 
-    @Override
-    public UserDetailsService userDetailsService() {
-        return new UserDetailsService(){
-            @Override
-            public UserDetails loadUserByUsername(String s) {
-                return userRepository.findUserByEmail(s).orElseThrow(() -> new RuntimeException("User not found"));
-            }
-        };    }
 
     public AuthenticationResponse logIn(AuthenticationRequest request) {
-      
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -133,8 +132,12 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(null);
+    public User getUserById(Long id) throws Exception {
+        Optional<User> user =  userRepository.findById(id);
+        if (user.isEmpty())
+            throw new Exception("user not found");
+
+        return user.get();
     }
 
 
@@ -166,6 +169,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
 
+
     public void updateUser(UserDto userDto) throws Exception {
 
         userRepository.findUserByEmail(userDto.getEmail()).orElseThrow(()-> new Exception("User not found"));
@@ -176,14 +180,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
 
-
-    public void lockUser(String username) throws Exception {
-        User u = userRepository.findUserByEmail(username).orElseThrow(()-> new Exception("User not found"));
-        u.setLoginAttempts(0);
-        u.setIsLocked(true);
-        userRepository.save(u);
-
-    }
 
 
 }

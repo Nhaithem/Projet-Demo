@@ -23,7 +23,7 @@ public interface UserService {
 	
 	List<User> findAll();
 
-    User getUserById(Long id);
+    User getUserById(Long id) throws Exception;
 
 
 	void resetpassword(ResetPassword password, String token);
@@ -36,7 +36,6 @@ public interface UserService {
 
 	void signIn(UserDto userDto) throws Exception;
 
-	UserDetailsService userDetailsService();
 
 	
 }

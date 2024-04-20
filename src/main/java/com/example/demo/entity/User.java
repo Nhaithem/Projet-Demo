@@ -8,11 +8,14 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import com.example.demo.entity.Product;
+import lombok.Builder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,8 +32,8 @@ import lombok.ToString;
 @Getter // lombok 
 @Setter //lombok 
 @AllArgsConstructor //lombok 
-@NoArgsConstructor //lombok 
-@ToString
+@NoArgsConstructor //lombok
+@Builder
 public class User implements UserDetails {
 
     @Id
@@ -39,19 +42,15 @@ public class User implements UserDetails {
 
 	private String fullName;
 
-    
     private String email;
-
     
     private String password;
-
-    private int loginAttempts = 0;
 
     private Boolean isEnabled = false;
 
     private Boolean isLocked = false ;
-  
-   
+
+    @Enumerated(EnumType.STRING)
     private Role role ;
 
     @JsonIgnore
